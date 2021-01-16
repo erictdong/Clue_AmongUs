@@ -1,0 +1,270 @@
+diff --git a/git.log b/git.log
+index 297dc60..5071bc3 100644
+--- a/git.log
++++ b/git.log
+@@ -1,3 +1,9 @@
++commit 30a6b601da8e239f3365b68e993723b29448e880
++Author: Alexander Cieslewicz <55669270+acieslewicz@users.noreply.github.com>
++Date:   Fri Oct 9 17:46:58 2020 -0600
++
++    Added additional comments
++
+ commit 8e6b8f7f7c64cefa5cb20ecc01cab2e5dde86aab
+ Author: erictdong <70970709+erictdong@users.noreply.github.com>
+ Date:   Fri Oct 9 17:40:29 2020 -0600
+diff --git a/src/clueGame/Board.java b/src/clueGame/Board.java
+index 804ec5a..efbcce6 100644
+--- a/src/clueGame/Board.java
++++ b/src/clueGame/Board.java
+@@ -7,15 +7,15 @@
+ 
+ package clueGame;
+ 
++import java.io.FileNotFoundException;
++import java.io.FileReader;
+ import java.util.ArrayList;
+ import java.util.HashMap;
+ import java.util.Map;
+-import java.io.File;
+-import java.io.FileNotFoundException;
+-import java.io.FileReader;
+ import java.util.Scanner;
+ 
+ public class Board {
++	private static final String COMMENT_PREFIX = "//";
+ 	/*
+ 	 * Variables for Board instance
+ 	 */
+@@ -31,25 +31,7 @@ public class Board {
+ 	// constructor is private to ensure only one can be created
+ 	private Board() {
+ 		super();
+-		
+-	}
+ 
+-	/*
+-	 * Check for valid adjacent cells and add to cells adjList
+-	 */
+-	private void setupAdjList(BoardCell cell, int row, int col) {
+-		if ((row - 1) >= 0) {
+-			cell.addAdj(getCell(row - 1, col));
+-		}
+-		if ((row + 1) < numRows) {
+-			cell.addAdj(getCell(row + 1, col));
+-		}
+-		if ((col - 1) >= 0) {
+-			cell.addAdj(getCell(row, col - 1));
+-		}
+-		if ((col + 1) < numColumns) {
+-			cell.addAdj(getCell(row, col + 1));
+-		}
+ 	}
+ 
+ 	// this method returns the only Board
+@@ -61,12 +43,13 @@ public class Board {
+ 	 * initialize the board (since we are using singleton pattern)
+ 	 */
+ 	public void initialize() {
+-		try{
++		try {
+ 			loadConfigFiles();
+-		} catch(FileNotFoundException | BadConfigFormatException e) {
++		}
++		catch (FileNotFoundException | BadConfigFormatException e) {
+ 			System.out.println(e.getMessage());
+ 		}
+-		
++
+ 	}
+ 
+ 	/*
+@@ -77,92 +60,135 @@ public class Board {
+ 		loadLayoutConfig();
+ 	}
+ 
+-	public void loadSetupConfig() throws FileNotFoundException,BadConfigFormatException {
+-		roomMap = new HashMap<Character,Room>();
++	/*
++	 * Loads the game config setup and builds the game board legend
++	 */
++	public void loadSetupConfig() throws FileNotFoundException, BadConfigFormatException {
++		roomMap = new HashMap<Character, Room>();
+ 		FileReader reader = new FileReader(setupConfigFile);
+ 		Scanner setupConfigIn = new Scanner(reader);
+ 		while (setupConfigIn.hasNextLine()) {
+ 			String line = setupConfigIn.nextLine();
+-			if(!line.startsWith("//")) {
++			if (!line.startsWith(COMMENT_PREFIX)) {
+ 				String roomLabel[] = line.split(", ");
+-				if(roomLabel[0].equals("Room")|| roomLabel[0].equals("Space")) {
++				if (roomLabel[0].equals("Room") || roomLabel[0].equals("Space")) {
+ 					roomMap.put(roomLabel[2].charAt(0), new Room(roomLabel[1]));
+-					
+ 				}
+ 				else {
+ 					throw new BadConfigFormatException();
+ 				}
+ 			}
+-		
+ 		}
+ 	}
+-	
+-	//helper function for loadLayoutConfig
+-	private Boolean testRoomExistance(String[] row) {
+-		for (String cell: row) {
++
++	/*
++	 * Check for valid adjacent cells and add to cells adjList
++	 */
++	private void setupAdjList(BoardCell cell, int row, int col) {
++		if ((row - 1) >= 0) {
++			cell.addAdj(getCell(row - 1, col));
++		}
++		if ((row + 1) < numRows) {
++			cell.addAdj(getCell(row + 1, col));
++		}
++		if ((col - 1) >= 0) {
++			cell.addAdj(getCell(row, col - 1));
++		}
++		if ((col + 1) < numColumns) {
++			cell.addAdj(getCell(row, col + 1));
++		}
++	}
++
++	/**
++	 * Checks if an array of config cells has a room that is not in the legend
++	 * 
++	 * @row The row of config cell strings to check
++	 */
++	private Boolean areRoomsInLegend(String[] rowOfCells) {
++		for (String cell : rowOfCells) {
+ 			if (!roomMap.containsKey(cell.charAt(0))) {
+ 				return false;
+ 			}
+ 		}
+ 		return true;
+ 	}
+-	
+-	//helper function for loadLayoutConfig
++
++	/*
++	 * Method that set appropriate cell properties based on the second char
++	 */
++	private void setCellParameters(int row, int col, char settingChar) {
++		BoardCell currentCell = getCell(row, col);
++		switch (settingChar) {
++		case '*':
++			currentCell.setRoomCenter(true);
++			getRoom(currentCell).setCenterCell(currentCell);
++			break;
++		case '#':
++			currentCell.setRoomLabel(true);
++			getRoom(currentCell).setLabelCell(currentCell);
++			break;
++		case '^':
++			currentCell.setDoorDirection(DoorDirection.UP);
++			break;
++		case '<':
++			currentCell.setDoorDirection(DoorDirection.LEFT);
++			break;
++		case '>':
++			currentCell.setDoorDirection(DoorDirection.RIGHT);
++			break;
++		case 'v':
++			currentCell.setDoorDirection(DoorDirection.DOWN);
++			break;
++		default:
++			currentCell.setSecretPassage(settingChar);
++			break;
++		}
++	}
++
++	/*
++	 * Instantiate a board grid and set the cell information based on what is in the
++	 * layoutConfig
++	 */
+ 	private void initializeGrid(ArrayList<String[]> loadedCells) {
+ 		grid = new BoardCell[numRows][numColumns];
+-		for (int i=0; i<numRows; i++) {
+-			for(int j=0; j<numColumns; j++) {
+-				grid[i][j]=new BoardCell(i,j,loadedCells.get(i)[j].charAt(0));
+-				if(loadedCells.get(i)[j].length()==2) {
+-					char extraChar= loadedCells.get(i)[j].charAt(1);
+-					
+-					switch(extraChar) {
+-					case '*':
+-						grid[i][j].setRoomCenter(true);
+-						getRoom(grid[i][j]).setCenterCell(grid[i][j]);
+-						break;
+-					case '#':
+-						grid[i][j].setRoomLabel(true);
+-						getRoom(grid[i][j]).setLabelCell(grid[i][j]);
+-						break;
+-					case '^':
+-						grid[i][j].setDoorDirection(DoorDirection.UP);
+-						break;
+-					case '<':
+-						grid[i][j].setDoorDirection(DoorDirection.LEFT);
+-						break;
+-					case '>':
+-						grid[i][j].setDoorDirection(DoorDirection.RIGHT);
+-						break;
+-					case 'v':
+-						grid[i][j].setDoorDirection(DoorDirection.DOWN);
+-						break;
+-					default:
+-						grid[i][j].setSecretPassage(extraChar);
+-						break;
+-					}
++		for (int row = 0; row < numRows; row++) {
++			for (int col = 0; col < numColumns; col++) {
++				char cellInitial = loadedCells.get(row)[col].charAt(0);
++				grid[row][col] = new BoardCell(row, col, cellInitial);
++				if (loadedCells.get(row)[col].length() == 2) {
++					char settingChar = loadedCells.get(row)[col].charAt(1);
++					setCellParameters(row, col, settingChar);
+ 				}
+ 			}
+ 		}
+ 	}
+-	public void loadLayoutConfig() throws FileNotFoundException, BadConfigFormatException  {
++
++	/*
++	 * Checks if number of cols is valid and that all imported rooms exist
++	 */
++	private void isLayoutFileValid(ArrayList<String[]> cells) throws BadConfigFormatException {
++		for (String[] row : cells) {
++			if (row.length != numColumns || !areRoomsInLegend(row)) {
++				throw new BadConfigFormatException();
++			}
++		}
++	}
++
++	/*
++	 * Loads the data from a layout config file and instantiate the board grid array
++	 */
++	public void loadLayoutConfig() throws FileNotFoundException, BadConfigFormatException {
+ 		FileReader reader = new FileReader(layoutConfigFile);
+ 		Scanner layoutConfigIn = new Scanner(reader);
+ 		ArrayList<String[]> cells = new ArrayList<String[]>();
+ 		while (layoutConfigIn.hasNextLine()) {
+ 			String line = layoutConfigIn.nextLine();
+-			cells.add(line.split(","));	
+-		}
+-		numRows=cells.size();
+-		numColumns=cells.get(0).length;
+-		for (String[] row: cells) {
+-			if (row.length != numColumns || !testRoomExistance(row)) {
+-				throw new BadConfigFormatException();
+-			}
++			cells.add(line.split(","));
+ 		}
++		numRows = cells.size();
++		numColumns = cells.get(0).length;
++		isLayoutFileValid(cells);
+ 		initializeGrid(cells);
+-		
+-		
+ 	}
+ 
+ 	/*

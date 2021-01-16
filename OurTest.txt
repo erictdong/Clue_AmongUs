@@ -1,0 +1,11 @@
+Our tests are unique because we are checked the total number of rooms and checked an alternating
+amount of rooms in our testRoomLabels function. In our comments we mentioned which rooms the doors
+should lead to.
+
+In our fourDoor Directions test we tested 4 doorways to see if they have different directions.
+We also checked room cells, unused areas, and walkways to make sure they are not doors.
+In testRooms we checked a room not on the edge of the board, we checked a room on the edge with
+a weird shape, and we checked a room on the corner of the board to check if labels and center are correct.
+
+We added a testInitial method to check if a cell's initial matched to room it was located in.
+For walkways, doors, and unused we assert that roomcenter and room label is false.

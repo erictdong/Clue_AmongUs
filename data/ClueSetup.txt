@@ -1,0 +1,27 @@
+//Rooms and room cards
+Room, Shields, S
+Room, Navigation, N
+Room, Guns, G
+Room, Medical, M
+Room, Comms, C
+Room, Oxygen, O
+Room, Left Engine, L
+Room, Energy, E
+Room, Right Engine, R
+// other spaces on board
+Space, Unused, X
+Space, Walkway, W
+// Players
+Player, Red, red, Human, 1, 7
+Player, Cyan, cyan, Computer, 9, 0
+Player, Orange, orange, Computer, 20, 0
+Player, Yellow, yellow, Computer, 24, 17
+Player, Black, black, Computer, 20, 25
+Player, Pink, pink, Computer, 8, 25
+//Weapons
+Weapon, Gun
+Weapon, Spike
+Weapon, Knife
+Weapon, Fists
+Weapon, Button
+Weapon, Meltdown

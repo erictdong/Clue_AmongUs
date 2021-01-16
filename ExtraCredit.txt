@@ -1,0 +1,9 @@
+Bring in some artwork for the background of the board or for the player pieces.
+- We added Sprites for the players instead of the usual circles. We also added a picture in the middle of the board where the
+unused space would be. We also added images for the secret passageways as vents.
+
+Bring in sound and/or music.
+-We added music to the game when it runs
+
+Create a playable .jar file.
+-We created a jar file
